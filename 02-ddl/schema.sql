@@ -37,11 +37,7 @@ ALTER TABLE students
     ON DELETE CASCADE
     ON UPDATE RESTRICT; -- cannot change primary key (default)
 
--- DML: insert row
-INSERT INTO parents (first_name, last_name) VALUES ("Ah Kow", "Tan");
 
--- DML: insert a row with foreign key depndency
-INSERT INTO students (parent_id, first_name, last_name, dob, swimming_level) VALUES (2, "Ah Mew", "Tan", "2020-06-09", 1);
 
 CREATE TABLE locations (
     location_id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
