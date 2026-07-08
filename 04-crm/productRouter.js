@@ -10,7 +10,7 @@ const path = require('path');
 
 // fs is the file system (operating system functions to manage files)
 const fs = require('fs');
-const { chunkPDF, generateEmbedding } = require('./rag');
+const { chunkPDF, generateEmbedding, answerQuestion } = require('./rag');
 
 // enable file upload
 router.use(fileUpload());
@@ -172,6 +172,43 @@ router.post('/:product_id/upload', async function (req, res) {
 
 })
 
+// route to answer question base on PDF
+// need to use express.json() because we are going to use axios to send the data from the
+// frontend to the backend
+router.post('/:product_id/chat', express.json(), async function(req,res, next){
+    try {
+        const product_id = req.params.product_id;
+        const question = req.body.question;
+        if (!question) {
+            return res.status(400).json({
+                error:"No question found"
+            })
+        }
+
+        const [products] = await connection.execute("SELECT * FROM Products WHERE product_id = ?", [product_id]);
+        if (products.legnth ===0) {
+            return res.status(404).json({
+                error: "A product by this id is not found"
+            })
+        }
+
+        if (!products[0].pdf_id) {
+             return res.status(404).json({
+                error: "This product does not have any PDF documentation"
+            })
+        }
+
+        const pdfId = products[0].pdf_id;
+        const answer = await answerQuestion(question, pdfId, connection);
+
+        res.json({
+            answer
+        })
+
+    } catch (e) {
+        next(e); // pass the error to Express to handle
+    }
+})
 
 // whatever is exported is available for other JS files in the same nodejs application to use
 module.exports = router;
